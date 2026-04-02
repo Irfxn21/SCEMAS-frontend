@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 from clients.AlertClient import get_alert_rule, get_alerts, update_alert
+from clients.SensorClient import get_sensor_data_by_id
 from models.AlertSeverity import AlertSeverity
 from models.AlertStatus import AlertStatus
 from models.SensorType import SensorType
@@ -248,6 +249,6 @@ if st.session_state.get("alerts_show_dialog", False):
                 st.json(get_alert_rule(alert.rule_id).__dict__)
 
             with st.expander("📷 View Sensor Data", expanded=False):
-                st.caption("TO DO")
+                st.json(get_sensor_data_by_id(alert.sensor_id).__dict__)
 
     show_alert_dialog()
