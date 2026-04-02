@@ -8,6 +8,7 @@ def logout_dialog():
 
     if st.button("Logout", key="log_out_button", use_container_width=True):
         logout()
+        st.rerun()
 
 def render_sidebar():
     with st.sidebar:

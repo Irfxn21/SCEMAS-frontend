@@ -1,8 +1,11 @@
 import streamlit as st
 import time
+from clients.AlertClient import get_alerts
 from utils.Initialize import initialize
 from clients.FirebaseClient import login, signup, logout
 from utils.Sidebar import render_sidebar
+
+st.session_state.page = "app"
 
 initialize()
 
@@ -20,11 +23,11 @@ if st.session_state.logged_in == False:
     st.title('SCEMAS')
     st.caption('🚀 Smart City Environmental Monitoring & Alert System')
 
-    login_tab, signup_tab = st.tabs(["🔑 Log In", "📝 Sign Up"])
+    login_tab, signup_tab = st.tabs(["🔑 Login", "📝 Sign Up"])
 
     # LOGIN TAB
     with login_tab:
-        st.subheader("Log In")
+        st.subheader("Login")
 
         email = st.text_input("📧 Email", key=st.session_state.login_email_key)
         password = st.text_input("🔐 Password", type="password", key=st.session_state.login_password_key)

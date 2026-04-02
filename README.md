@@ -56,6 +56,7 @@ FIREBASE_PROJECT_ID = ""
 FIREBASE_STORAGE_BUCKET = ""
 FIREBASE_MESSAGING_SENDER_ID = ""
 FIREBASE_APP_ID = ""
+BACKEND_BASE_URL = ""
 ```
 
 > ⚠️ Keep this file private and do not commit it to version control.

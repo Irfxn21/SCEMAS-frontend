@@ -25,6 +25,7 @@ def login(email, password):
         st.session_state.role = AccountRole.ADMIN
         st.session_state.token = user["idToken"]
         st.session_state.user_id = user["localId"]
+        st.session_state.refresh_token = user["refreshToken"]
 
         return True
     except Exception as e:
@@ -41,6 +42,7 @@ def signup(email, password):
         st.session_state.role = AccountRole.ADMIN
         st.session_state.token = user["idToken"]
         st.session_state.user_id = user["localId"]
+        st.session_state.refresh_token = user["refreshToken"]
 
         return True
     except Exception as e:
@@ -50,3 +52,23 @@ def signup(email, password):
 
 def logout():
     st.session_state.clear()
+
+def refresh_id_token():
+    try:
+        refresh_token = st.session_state.get("refresh_token")
+
+        if not refresh_token:
+            print("No refresh token found")
+            return False
+
+        user = auth.refresh(refresh_token)
+
+        st.session_state.token = user["idToken"]
+        st.session_state.refresh_token = user["refreshToken"]
+        st.session_state.user_id = user["localId"]
+
+        return True
+
+    except Exception as e:
+        print("Error refreshing token:", e)
+        return False
