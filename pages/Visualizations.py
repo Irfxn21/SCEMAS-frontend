@@ -308,6 +308,8 @@ with graphs_tab:
                 aggfunc="mean"
             )
 
+            pivot_df = pivot_df.interpolate(method="time")
+
             st.line_chart(pivot_df)
 
         # -----------------------
