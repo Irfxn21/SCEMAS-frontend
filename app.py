@@ -5,6 +5,7 @@ from utils.Initialize import initialize
 from clients.FirebaseClient import login, signup, logout
 from utils.Sidebar import render_sidebar
 
+st.set_page_config(layout="centered")
 st.session_state.page = "app"
 
 initialize()
