@@ -60,6 +60,9 @@ def initialize():
     if "refresh_alerts" not in st.session_state:
         st.session_state["refresh_alerts"] = False
 
+    if "sensor_data" not in st.session_state:
+        st.session_state["sensor_data"] = None
+
     if (st.session_state.logged_in == False and st.session_state.page != "app"):
         st.switch_page("app.py")
 
@@ -70,3 +73,6 @@ def initialize():
         st.session_state.alerts_data = None
         st.session_state.alerts_selected_index = None
         st.session_state.alerts_table_key = None
+
+    if (st.session_state.page != "visualizations" or st.session_state.refresh_alerts == True):
+        st.session_state["sensor_data"] = None
