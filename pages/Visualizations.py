@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import LocateControl, Fullscreen
@@ -332,11 +333,68 @@ with graphs_tab:
 
             dist_df = filtered_df[
                 filtered_df["sensor_type"] == selected_sensor
-            ]
+            ].copy()
 
-            st.bar_chart(
-                dist_df["measurement"].value_counts().sort_index()
+            values = dist_df["measurement"].dropna()
+
+            if values.empty:
+                st.warning("No measurement data available for this sensor.")
+                st.stop()
+
+            # -----------------------
+            # Bucket Strategy
+            # -----------------------
+            use_custom_bins = st.checkbox("Use meaningful ranges", value=True)
+
+            def get_bins(sensor_type, values):
+                if sensor_type == "Temperature":
+                    return [-30, 0, 10, 20, 30, 40, 50]
+                elif sensor_type == "Humidity":
+                    return [0, 20, 40, 60, 80, 100]
+                elif sensor_type == "Noise":
+                    return [0, 30, 60, 80, 100, 120]
+                elif sensor_type == "Air Quality":
+                    return [0, 50, 100, 150, 200, 300, 500]
+                else:
+                    return np.linspace(values.min(), values.max(), 10)
+
+            if use_custom_bins:
+                bins = get_bins(selected_sensor, values)
+            else:
+                num_bins = st.slider("Number of Buckets", 5, 50, 15)
+                bins = np.linspace(values.min(), values.max(), num_bins + 1)
+
+            # -----------------------
+            # Apply Bucketing
+            # -----------------------
+            dist_df["bucket"] = pd.cut(values, bins=bins, include_lowest=True)
+
+            bucket_counts = (
+                dist_df["bucket"]
+                .value_counts()
+                .sort_index()
             )
+
+            # Make labels readable
+            bucket_counts.index = bucket_counts.index.astype(str)
+
+            # Optional normalization
+            show_percentage = st.checkbox("Show as percentage", value=False)
+            if show_percentage:
+                bucket_counts = bucket_counts / bucket_counts.sum()
+
+            # -----------------------
+            # Chart
+            # -----------------------
+            st.bar_chart(bucket_counts)
+
+            # -----------------------
+            # Summary Stats
+            # -----------------------
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Min", round(values.min(), 2))
+            col2.metric("Mean", round(values.mean(), 2))
+            col3.metric("Max", round(values.max(), 2))
 
         # -----------------------
         # Count Over Time
