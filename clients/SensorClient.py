@@ -1,7 +1,6 @@
 import streamlit as st
 from typing import List, Dict, Optional
 import time
-import uuid
 import random
 
 from utils.Request import request

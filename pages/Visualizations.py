@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
-from folium.plugins import LocateControl, Fullscreen, MarkerCluster
+from folium.plugins import LocateControl, Fullscreen
 
 from clients.SensorClient import get_sensor_data
 from models.SensorType import SensorType
@@ -24,6 +24,20 @@ st.caption('View visualizations of sensor data')
 map_tab, graphs_tab = st.tabs(["📍 Map", "📈 Graphs"])
 
 # -----------------------
+# Fetch Function
+# -----------------------
+def fetch_data():
+    try:
+        data = get_sensor_data()
+        st.session_state["sensor_data"] = data
+        st.session_state["fetch_failed"] = False
+    except Exception:
+        st.session_state["fetch_failed"] = True
+
+if st.session_state["sensor_data"] is None and not st.session_state["fetch_failed"]:
+    fetch_data()
+
+# -----------------------
 # Map Tab
 # -----------------------
 with map_tab:
@@ -40,26 +54,14 @@ with map_tab:
         format_func=lambda x: x.value if x else "All"
     )
 
-    # -----------------------
-    # Fetch Data (safe)
-    # -----------------------
-    sensors = []
-    fetch_failed = False
-
-    if st.session_state.get("sensor_data") is None:
-        try:
-            st.session_state["sensor_data"] = get_sensor_data()
-        except Exception:
-            fetch_failed = True
-            st.session_state["sensor_data"] = []
-
     sensors = st.session_state["sensor_data"]
+    fetch_failed = st.session_state["fetch_failed"]
 
     # -----------------------
     # Base Map (ALWAYS CREATE)
     # -----------------------
     m = folium.Map(
-        location=[20, 0],  # default world view
+        location=[20, 0],
         zoom_start=2,
         tiles="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
         attr='© HOT'
@@ -70,7 +72,7 @@ with map_tab:
     m.options['minZoom'] = 2
 
     # -----------------------
-    # Sensor Type Colors
+    # Sensor Type Styles
     # -----------------------
     SENSOR_COLORS = {
         SensorType.AIR_QUALITY: "red",
@@ -86,12 +88,12 @@ with map_tab:
         SensorType.HUMIDITY: "tint",
     }
 
-    # -----------------------
-    # Process Data (only if exists)
-    # -----------------------
     filtered_df = pd.DataFrame()
 
-    if not fetch_failed and sensors:
+    # -----------------------
+    # Process Data
+    # -----------------------
+    if sensors:
         df = pd.DataFrame([s.__dict__ for s in sensors])
 
         df["latitude"] = df["location"].apply(lambda x: x.latitude)
@@ -126,21 +128,18 @@ with map_tab:
             ]
 
         if not filtered_df.empty:
-            # Deduplicate latest per location
             filtered_df = filtered_df.sort_values("time", ascending=False)
             filtered_df = filtered_df.drop_duplicates(
                 subset=["latitude", "longitude"],
                 keep="first"
             )
 
-            # Fit bounds
             bounds = [
                 [filtered_df["latitude"].min(), filtered_df["longitude"].min()],
                 [filtered_df["latitude"].max(), filtered_df["longitude"].max()]
             ]
             m.fit_bounds(bounds)
 
-            # Add markers
             for _, row in filtered_df.iterrows():
                 sensor_type_val = row["sensor_type"]
 
@@ -161,19 +160,22 @@ with map_tab:
                 ).add_to(m)
 
     # -----------------------
-    # Messages (NO st.stop)
+    # Messages
     # -----------------------
     if fetch_failed:
-        st.error("Failed to fetch sensor data. Showing empty map.")
+        st.error("Failed to fetch sensor data.")
+
+    elif sensors is None:
+        st.info("Loading sensor data...")
 
     elif not sensors:
-        st.info("No sensor data available. Showing empty map.")
+        st.info("No sensor data available.")
 
     elif filtered_df.empty:
         st.warning("No sensor data matches the selected filters.")
 
     # -----------------------
-    # Legend (always visible)
+    # Legend
     # -----------------------
     legend_html = """
     <div style="
@@ -206,10 +208,9 @@ with map_tab:
     Fullscreen().add_to(m)
 
     # -----------------------
-    # Render Map (ALWAYS)
+    # Render Map
     # -----------------------
     st_folium(m, use_container_width=True)
-
 
 # -----------------------
 # Graphs Tab
