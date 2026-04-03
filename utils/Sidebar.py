@@ -23,8 +23,8 @@ def render_sidebar():
             st.caption("Operations")
             st.page_link("pages/Visualizations.py", label="Visualizations", icon="🗺️")
             st.page_link("pages/Alerts.py", label="Alerts", icon="🚨")
+            st.page_link("pages/Sensors.py", label="Sensors", icon="📡")
             st.page_link("pages/SystemHealth.py", label="System Health", icon="❤️‍🩹")
-            st.page_link("pages/Sensors.py", label="Sensors", icon="📷")
 
         if st.session_state.role in [AccountRole.ADMIN]:
             st.caption("Administration")

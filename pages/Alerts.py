@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 from clients.AlertClient import get_alert_rule, get_alerts, update_alert
 from clients.SensorClient import get_sensor_data_by_id
@@ -9,6 +8,7 @@ from models.AlertStatus import AlertStatus
 from models.SensorType import SensorType
 from utils.Initialize import initialize
 from utils.Sidebar import render_sidebar
+from datetime import datetime
 
 
 # -----------------------
@@ -77,10 +77,8 @@ if not alerts:
     st.stop()
 
 
-# Convert to DataFrame
 df = pd.DataFrame([a.__dict__ for a in alerts])
 
-# Convert time (assuming epoch seconds)
 df["time"] = pd.to_datetime(df["time"], unit="s")
 
 
@@ -143,7 +141,6 @@ else:
         ]
     ].copy()
 
-    # Prettify enum values
     display_df["sensor_type"] = display_df["sensor_type"].apply(lambda x: x.value)
     display_df["severity"] = display_df["severity"].apply(lambda x: x.value)
     display_df["status"] = display_df["status"].apply(lambda x: x.value)
@@ -158,14 +155,12 @@ else:
         selection_mode="single-row",
     )
 
-    # Handle selection
     prev_selected = st.session_state.get("alerts_selected_alert")
 
     if event.selection["rows"]:
         selected_index = event.selection["rows"][0]
         new_selected = filtered_df.iloc[selected_index]
 
-        # If selection changed → close dialog
         if prev_selected is None or prev_selected.alert_id != new_selected.alert_id:
             st.session_state["alerts_show_dialog"] = False
 
@@ -221,7 +216,6 @@ if st.session_state.get("alerts_show_dialog", False):
                 index=status_options.index(alert.status) if alert.status in status_options else 0
             )
 
-            # Submit button (full width)
             if st.button("Submit", width='stretch'):
                 try:
                     update_alert(
@@ -245,10 +239,44 @@ if st.session_state.get("alerts_show_dialog", False):
 
             st.divider()
 
-            with st.expander("📝 View Alert Rule", expanded=False):
-                st.json(get_alert_rule(alert.rule_id).__dict__)
+            def format_ts(ts: int):
+                try:
+                    return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+                except Exception:
+                    return ts
 
-            with st.expander("📷 View Sensor Data", expanded=False):
-                st.json(get_sensor_data_by_id(alert.sensor_id).__dict__)
+            with st.expander("📝 View Alert Rule", expanded=False):
+                try:
+                    alert_rule = get_alert_rule(alert.rule_id).__dict__
+
+                    alert_rule["created_at"] = format_ts(alert_rule["created_at"])
+                    alert_rule["updated_at"] = format_ts(alert_rule["updated_at"])
+                    alert_rule["sensor_type"] = alert_rule["sensor_type"].value
+                    alert_rule["operator"] = alert_rule["operator"].value
+                    alert_rule["location"] = {
+                        "longitude": alert_rule["location"].longitude,
+                        "latitude": alert_rule["location"].latitude,
+                    }
+
+                    st.json(alert_rule)
+
+                except Exception:
+                    st.error("failed to fetch data")
+
+            with st.expander("📡 View Sensor Data", expanded=False):
+                try:
+                    sensor_dict = get_sensor_data_by_id(alert.sensor_id).__dict__
+
+                    sensor_dict["time"] = format_ts(sensor_dict["time"])
+                    sensor_dict["sensor_type"] = sensor_dict["sensor_type"].value
+                    sensor_dict["location"] = {
+                        "longitude": sensor_dict["location"].longitude,
+                        "latitude": sensor_dict["location"].latitude,
+                    }
+
+                    st.json(sensor_dict)
+
+                except Exception:
+                    st.error("failed to fetch data")
 
     show_alert_dialog()

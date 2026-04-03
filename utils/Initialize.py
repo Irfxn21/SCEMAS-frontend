@@ -51,14 +51,17 @@ def initialize():
     if "alerts_data" not in st.session_state:
         st.session_state.alerts_data = None
 
-    if "alerts_selected_index" not in st.session_state:
-        st.session_state["alerts_selected_index"] = None
-
-    if "alerts_table_key" not in st.session_state:
-        st.session_state["alerts_table_key"] = "alerts_table"
-
     if "refresh_alerts" not in st.session_state:
         st.session_state["refresh_alerts"] = False
+
+    if "sensors_selected_alert" not in st.session_state:
+        st.session_state.sensors_selected_alert = None
+
+    if "sensors_show_dialog" not in st.session_state:
+        st.session_state.sensors_show_dialog = None
+
+    if "sensors_data" not in st.session_state:
+        st.session_state.sensors_data = None
 
     if "sensor_data" not in st.session_state:
         st.session_state["sensor_data"] = None
@@ -74,8 +77,11 @@ def initialize():
         st.session_state.alerts_selected_alert = None
         st.session_state.alerts_show_dialog = None
         st.session_state.alerts_data = None
-        st.session_state.alerts_selected_index = None
-        st.session_state.alerts_table_key = None
+
+    if (st.session_state.page != "sensors"):
+        st.session_state.sensors_selected_alert = None
+        st.session_state.sensors_show_dialog = None
+        st.session_state.sensors_data = None
 
     if (st.session_state.page != "visualizations"):
         st.session_state["sensor_data"] = None
