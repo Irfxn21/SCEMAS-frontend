@@ -1,9 +1,8 @@
 import streamlit as st
 import time
-from clients.AlertClient import get_alerts
+from clients.AccountClient import initialize_role
 from utils.Initialize import initialize
-from clients.FirebaseClient import login, signup, logout
-from utils.Sidebar import render_sidebar
+from clients.FirebaseClient import login, refresh_id_token, signup
 
 st.set_page_config(layout="centered")
 st.session_state.page = "app"
@@ -58,7 +57,9 @@ if st.session_state.logged_in == False:
         with col1:
             if st.button("Submit", use_container_width=True, key="signup_button"):
                 if email != "" and password != "":
-                    signup(email, password)
+                    if signup(email, password):
+                        initialize_role()
+                        refresh_id_token()
                     clear_signup_fields()
                 else:
                     st.toast("Input fields cannot be empty.", icon=":material/warning:")
