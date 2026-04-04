@@ -369,7 +369,7 @@ with graphs_tab:
             # -----------------------
             # Apply Bucketing
             # -----------------------
-            dist_df["bucket"] = pd.cut(values, bins=bins, include_lowest=True)
+            dist_df["bucket"] = pd.cut(values, bins=bins, include_lowest=True, duplicates="drop")
 
             bucket_counts = (
                 dist_df["bucket"]
