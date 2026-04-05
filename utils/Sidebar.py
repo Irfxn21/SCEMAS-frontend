@@ -30,6 +30,7 @@ def render_page_links():
     if st.session_state.role in [AccountRole.ADMIN, AccountRole.OPERATOR]:
         sensor_pages.append(("pages/SensorPresentation_Visualizations.py", "Visualizations", "🗺️"))
         sensor_pages.append(("pages/SensorPresentation_Sensors.py", "Sensors", "📡"))
+        sensor_pages.append(("pages/SensorPresentation_Predictions.py", "Predictions", "🧠"))
     if st.session_state.role in [AccountRole.ADMIN, AccountRole.OPERATOR, AccountRole.PUBLIC]:
         sensor_pages.append(("pages/SensorPresentation_AggregatedData.py", "Aggregated Data", "📊"))
 
